@@ -7,6 +7,7 @@ import (
 
 	lokiv1beta1 "github.com/ViaQ/loki-operator/api/v1beta1"
 	"github.com/ViaQ/loki-operator/internal/manifests"
+	"github.com/ViaQ/loki-operator/internal/manifests/internal"
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -32,6 +33,25 @@ func TestConfigOptions_UserOptionsTakePrecedence(t *testing.T) {
 	assert.JSONEq(t, string(expected), string(actual))
 }
 
+func TestConfigOptions_AppliesStackSize(t *testing.T) {
+	allSizes := []lokiv1beta1.LokiStackSizeType{
+		lokiv1beta1.SizeOneXExtraSmall,
+		lokiv1beta1.SizeOneXSmall,
+		lokiv1beta1.SizeOneXMedium,
+	}
+	for _, size := range allSizes {
+		res, err := manifests.ConfigOptions(manifests.Options{
+			Name:      "aksjdfadsf",
+			Namespace: "lkjsadfl",
+			Image:     "docker.io/ubuntu",
+			Stack:     lokiv1beta1.LokiStackSpec{
+				Size: size,
+			},
+		})
+		require.NoError(t, err)
+		require.EqualValues(t, internal.StackSizeTable[size], res.Stack)
+	}
+}
 
 func randomConfigOptions() manifests.Options {
 	return manifests.Options{
@@ -39,12 +59,12 @@ func randomConfigOptions() manifests.Options {
 		Namespace: uuid.New().String(),
 		Image:     uuid.New().String(),
 		Stack: lokiv1beta1.LokiStackSpec{
-			Size:              lokiv1beta1.OneXExtraSmallSize,
+			Size:              lokiv1beta1.SizeOneXExtraSmall,
 			Storage:           lokiv1beta1.ObjectStorageSpec{},
 			StorageClassName:  uuid.New().String(),
 			ReplicationFactor: rand.Int31(),
-			Limits:            lokiv1beta1.LimitsSpec{
-				Global:  lokiv1beta1.LimitsTemplateSpec{
+			Limits: lokiv1beta1.LimitsSpec{
+				Global: lokiv1beta1.LimitsTemplateSpec{
 					IngestionLimits: lokiv1beta1.IngestionLimitSpec{
 						IngestionRate:           rand.Int31(),
 						IngestionBurstSize:      rand.Int31(),
@@ -55,7 +75,7 @@ func randomConfigOptions() manifests.Options {
 						MaxGlobalStreamsPerUser: rand.Int31(),
 						MaxLineSize:             rand.Int31(),
 					},
-					QueryLimits:     lokiv1beta1.QueryLimitSpec{
+					QueryLimits: lokiv1beta1.QueryLimitSpec{
 						MaxEntriesPerQuery: rand.Int31(),
 						MaxChunksPerQuery:  rand.Int31(),
 						MaxQuerySeries:     rand.Int31(),
@@ -73,7 +93,7 @@ func randomConfigOptions() manifests.Options {
 							MaxGlobalStreamsPerUser: rand.Int31(),
 							MaxLineSize:             rand.Int31(),
 						},
-						QueryLimits:     lokiv1beta1.QueryLimitSpec{
+						QueryLimits: lokiv1beta1.QueryLimitSpec{
 							MaxEntriesPerQuery: rand.Int31(),
 							MaxChunksPerQuery:  rand.Int31(),
 							MaxQuerySeries:     rand.Int31(),
@@ -81,13 +101,13 @@ func randomConfigOptions() manifests.Options {
 					},
 				},
 			},
-			Template:          lokiv1beta1.LokiTemplateSpec{
-				Compactor:     lokiv1beta1.LokiComponentSpec{
-					Replicas:     rand.Int31(),
+			Template: lokiv1beta1.LokiTemplateSpec{
+				Compactor: lokiv1beta1.LokiComponentSpec{
+					Replicas: rand.Int31(),
 					NodeSelector: map[string]string{
 						uuid.New().String(): uuid.New().String(),
 					},
-					Tolerations:  []corev1.Toleration{
+					Tolerations: []corev1.Toleration{
 						{
 							Key:               uuid.New().String(),
 							Operator:          corev1.TolerationOpEqual,
@@ -97,12 +117,12 @@ func randomConfigOptions() manifests.Options {
 						},
 					},
 				},
-				Distributor:   lokiv1beta1.LokiComponentSpec{
-					Replicas:     rand.Int31(),
+				Distributor: lokiv1beta1.LokiComponentSpec{
+					Replicas: rand.Int31(),
 					NodeSelector: map[string]string{
 						uuid.New().String(): uuid.New().String(),
 					},
-					Tolerations:  []corev1.Toleration{
+					Tolerations: []corev1.Toleration{
 						{
 							Key:               uuid.New().String(),
 							Operator:          corev1.TolerationOpEqual,
@@ -112,12 +132,12 @@ func randomConfigOptions() manifests.Options {
 						},
 					},
 				},
-				Ingester:      lokiv1beta1.LokiComponentSpec{
-					Replicas:     rand.Int31(),
+				Ingester: lokiv1beta1.LokiComponentSpec{
+					Replicas: rand.Int31(),
 					NodeSelector: map[string]string{
 						uuid.New().String(): uuid.New().String(),
 					},
-					Tolerations:  []corev1.Toleration{
+					Tolerations: []corev1.Toleration{
 						{
 							Key:               uuid.New().String(),
 							Operator:          corev1.TolerationOpEqual,
@@ -127,12 +147,12 @@ func randomConfigOptions() manifests.Options {
 						},
 					},
 				},
-				Querier:       lokiv1beta1.LokiComponentSpec{
-					Replicas:     rand.Int31(),
+				Querier: lokiv1beta1.LokiComponentSpec{
+					Replicas: rand.Int31(),
 					NodeSelector: map[string]string{
 						uuid.New().String(): uuid.New().String(),
 					},
-					Tolerations:  []corev1.Toleration{
+					Tolerations: []corev1.Toleration{
 						{
 							Key:               uuid.New().String(),
 							Operator:          corev1.TolerationOpEqual,
@@ -143,11 +163,11 @@ func randomConfigOptions() manifests.Options {
 					},
 				},
 				QueryFrontend: lokiv1beta1.LokiComponentSpec{
-					Replicas:     rand.Int31(),
+					Replicas: rand.Int31(),
 					NodeSelector: map[string]string{
 						uuid.New().String(): uuid.New().String(),
 					},
-					Tolerations:  []corev1.Toleration{
+					Tolerations: []corev1.Toleration{
 						{
 							Key:               uuid.New().String(),
 							Operator:          corev1.TolerationOpEqual,

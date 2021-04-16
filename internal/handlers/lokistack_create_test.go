@@ -30,12 +30,10 @@ func TestMain(m *testing.M) {
 	if testing.Verbose() {
 		// set to the highest for verbose testing
 		log.SetLogLevel(5)
-	} else {
-		if err := log.SetOutput(ioutil.Discard); err != nil {
-			// This would only happen if the default logger was changed which it hasn't so
-			// we can assume that a panic is necessary and the developer is to blame.
-			panic(err)
-		}
+	} else if err := log.SetOutput(ioutil.Discard); err != nil {
+		// This would only happen if the default logger was changed which it hasn't so
+		// we can assume that a panic is necessary and the developer is to blame.
+		panic(err)
 	}
 	log.Init("testing")
 	os.Exit(m.Run())
